@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
   getTodos,
-  getSingleTodo,
   getNewTodo,
   removeSingleTodo,
   updateSingleTodo
@@ -106,10 +105,11 @@ class App extends Component {
     this.setState({ modal: !this.state.modal });
   };
 
-  handleSubmit = item => {
+  handleSubmit = async item => {
     this.toggle();
     if (item.id) {
-      this.props.updateTodo(item, item.id);
+      await this.props.updateTodo(item, item.id);
+      this.setState({ activeItem: item });
     } else {
       this.props.addTodo(item);
     }
@@ -169,7 +169,6 @@ const mapState = state => {
 const mapDispatch = dispatch => {
   return {
     getAllTodos: () => dispatch(getTodos()),
-    getTodo: id => dispatch(getSingleTodo(id)),
     addTodo: aTodo => dispatch(getNewTodo(aTodo)),
     deleteTodo: id => dispatch(removeSingleTodo(id)),
     updateTodo: (aTodo, id) => dispatch(updateSingleTodo(aTodo, id))
