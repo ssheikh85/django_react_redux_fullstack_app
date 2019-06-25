@@ -1,63 +1,28 @@
 import React, { Component } from 'react';
-import Modal from './Modal';
+import { connect } from 'react-redux';
+import {
+  getTodos,
+  getNewTodo,
+  removeSingleTodo,
+  updateSingleTodo
+} from '../store/reducers/reducer';
+import CustomModal from './CustomModal';
 
-const todoItems = [
-  {
-    id: 1,
-    title: 'Go to Market',
-    description: 'Buy ingredients to prepare dinner',
-    completed: true
-  },
-  {
-    id: 2,
-    title: 'Study',
-    description: 'Read Algebra and History textbook for upcoming test',
-    completed: false
-  },
-  {
-    id: 3,
-    title: "Sally's books",
-    description: "Go to library to rent sally's books",
-    completed: true
-  },
-  {
-    id: 4,
-    title: 'Article',
-    description: 'Write article on how to use django with react',
-    completed: false
-  }
-];
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      modal: false,
       viewCompleted: false,
       activeItem: {
         title: '',
         description: '',
         completed: false
-      },
-      todoList: todoItems
+      }
     };
   }
-  toggle = () => {
-    this.setState({ modal: !this.state.modal });
-  };
-  handleSubmit = item => {
-    this.toggle();
-    alert('save' + JSON.stringify(item));
-  };
-  handleDelete = item => {
-    alert('delete' + JSON.stringify(item));
-  };
-  createItem = () => {
-    const item = { title: '', description: '', completed: false };
-    this.setState({ activeItem: item, modal: !this.state.modal });
-  };
-  editItem = item => {
-    this.setState({ activeItem: item, modal: !this.state.modal });
-  };
+  componentDidMount() {
+    this.props.getAllTodos();
+  }
   displayCompleted = status => {
     if (status) {
       return this.setState({ viewCompleted: true });
@@ -84,7 +49,7 @@ class App extends Component {
   };
   renderItems = () => {
     const { viewCompleted } = this.state;
-    const newItems = this.state.todoList.filter(
+    const newItems = this.props.todos.filter(
       item => item.completed === viewCompleted
     );
     return newItems.map(item => (
@@ -105,17 +70,40 @@ class App extends Component {
             onClick={() => this.editItem(item)}
             className="btn btn-secondary mr-2"
           >
-            Edit
+            {' '}
+            Edit{' '}
           </button>
           <button
             onClick={() => this.handleDelete(item)}
             className="btn btn-danger"
           >
-            Delete
+            Delete{' '}
           </button>
         </span>
       </li>
     ));
+  };
+  toggle = () => {
+    this.setState({ modal: !this.state.modal });
+  };
+  handleSubmit = item => {
+    this.toggle();
+    if (item.id) {
+      this.props.updateTodo(item, item.id);
+    } else {
+      this.props.addTodo(item);
+    }
+  };
+
+  handleDelete = item => {
+    this.props.deleteTodo(item.id);
+  };
+  createItem = () => {
+    const item = { title: '', description: '', completed: false };
+    this.setState({ activeItem: item, modal: !this.state.modal });
+  };
+  editItem = item => {
+    this.setState({ activeItem: item, modal: !this.state.modal });
   };
   render() {
     return (
@@ -137,7 +125,7 @@ class App extends Component {
           </div>
         </div>
         {this.state.modal ? (
-          <Modal
+          <CustomModal
             activeItem={this.state.activeItem}
             toggle={this.toggle}
             onSave={this.handleSubmit}
@@ -147,4 +135,24 @@ class App extends Component {
     );
   }
 }
-export default App;
+
+const mapState = state => {
+  return {
+    todos: state.allTodos,
+    todo: state.singletodo
+  };
+};
+
+const mapDispatch = dispatch => {
+  return {
+    getAllTodos: () => dispatch(getTodos()),
+    addTodo: aTodo => dispatch(getNewTodo(aTodo)),
+    deleteTodo: id => dispatch(removeSingleTodo(id)),
+    updateTodo: (aTodo, id) => dispatch(updateSingleTodo(aTodo, id))
+  };
+};
+
+export default connect(
+  mapState,
+  mapDispatch
+)(App);
