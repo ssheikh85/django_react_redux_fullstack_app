@@ -7,11 +7,13 @@ const initialState = {
 
 //action creators
 const SET_TODOS = 'SET_TODOS';
+const SET_SINGLE_TODO = 'SET_SINGLE_TODO';
 const ADD_NEW_TODO = 'ADD_NEW_TODO';
 const DELETE_TODO = 'DELETE_TODO';
 const UPDATE_TODO = 'UPDATE_TODO';
 
 export const setTodos = todos => ({ type: SET_TODOS, todos });
+export const setSingleTodo = todo => ({ type: SET_SINGLE_TODO, todo });
 export const setNewTodo = newTodo => ({ type: ADD_NEW_TODO, newTodo });
 export const deleteTodo = id => ({ type: DELETE_TODO, id });
 export const updateTodo = (todoToUpdate, id) => ({
@@ -32,11 +34,21 @@ export const getTodos = () => {
   };
 };
 
+export const getSingleTodo = id => {
+  return async dispatch => {
+    try {
+      const { data } = await axios.get(`/api/todos/${id}/`);
+      dispatch(setSingleTodo(data));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+};
+
 export const getNewTodo = newTodo => {
   return async dispatch => {
     try {
       const { data } = await axios.post('api/todos/', newTodo);
-      console.log(data);
       dispatch(setNewTodo(data));
     } catch (err) {
       console.error(err);
@@ -70,8 +82,10 @@ export default function(state = initialState, action) {
   switch (action.type) {
     case SET_TODOS:
       return { ...state, allTodos: action.todos };
+    case SET_SINGLE_TODO:
+      return { ...state, singleTodo: action.todo };
     case ADD_NEW_TODO:
-      return { ...state, allTodos: [...state.allTodos, action.todo] };
+      return { ...state, allTodos: [...state.allTodos, action.newTodo] };
     case DELETE_TODO:
       const removedTodosArr = state.allTodos.filter(todoToRemove => {
         return todoToRemove.id === action.id;

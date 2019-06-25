@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
   getTodos,
+  getSingleTodo,
   getNewTodo,
   removeSingleTodo,
   updateSingleTodo
@@ -20,15 +21,30 @@ class App extends Component {
       }
     };
   }
+
   componentDidMount() {
     this.props.getAllTodos();
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.props.todos.length !== prevProps.todos.length ||
+      this.state.activeItem.title !== prevState.activeItem.title ||
+      this.state.activeItem.description !== prevState.activeItem.description ||
+      this.state.activeItem.completed !== prevState.activeItem.completed
+    ) {
+      this.props.getAllTodos();
+      this.renderTabList();
+    }
+  }
+
   displayCompleted = status => {
     if (status) {
       return this.setState({ viewCompleted: true });
     }
     return this.setState({ viewCompleted: false });
   };
+
   renderTabList = () => {
     return (
       <div className="my-5 tab-list">
@@ -47,11 +63,13 @@ class App extends Component {
       </div>
     );
   };
+
   renderItems = () => {
     const { viewCompleted } = this.state;
     const newItems = this.props.todos.filter(
       item => item.completed === viewCompleted
     );
+
     return newItems.map(item => (
       <li
         key={item.id}
@@ -83,9 +101,11 @@ class App extends Component {
       </li>
     ));
   };
+
   toggle = () => {
     this.setState({ modal: !this.state.modal });
   };
+
   handleSubmit = item => {
     this.toggle();
     if (item.id) {
@@ -98,13 +118,16 @@ class App extends Component {
   handleDelete = item => {
     this.props.deleteTodo(item.id);
   };
+
   createItem = () => {
     const item = { title: '', description: '', completed: false };
     this.setState({ activeItem: item, modal: !this.state.modal });
   };
+
   editItem = item => {
     this.setState({ activeItem: item, modal: !this.state.modal });
   };
+
   render() {
     return (
       <main className="content">
@@ -146,6 +169,7 @@ const mapState = state => {
 const mapDispatch = dispatch => {
   return {
     getAllTodos: () => dispatch(getTodos()),
+    getTodo: id => dispatch(getSingleTodo(id)),
     addTodo: aTodo => dispatch(getNewTodo(aTodo)),
     deleteTodo: id => dispatch(removeSingleTodo(id)),
     updateTodo: (aTodo, id) => dispatch(updateSingleTodo(aTodo, id))
